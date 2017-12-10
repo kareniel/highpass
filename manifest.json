@@ -1,0 +1,25 @@
+{
+  "manifest_version": 2,
+  "name": "sc-grep",
+  "description": "a browser extension that filters soundcloud feeds",
+  "version": "0.1",
+  "homepage_url": "https://github.com/kareniel/sc-grep",
+
+  "permissions": [ "storage", "activeTab" ],
+
+  "options_ui": {
+    "page": "options.html"
+  },
+
+  "browser_action": {
+    "default_title": "sc-grep",
+    "default_popup": "options.html"
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["https://soundcloud.com/*"],
+      "js": ["index.js"]
+    }
+  ]
+}

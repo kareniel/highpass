@@ -1,0 +1,19 @@
+{
+  "name": "sc-grep",
+  "version": "0.1.0",
+  "description": "a browser extension that filters soundcloud feeds",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kareniel/sc-grep.git"
+  },
+  "author": "kareniel",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/kareniel/sc-grep/issues"
+  },
+  "homepage": "https://github.com/kareniel/sc-grep#readme"
+}
