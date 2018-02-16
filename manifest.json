@@ -5,7 +5,14 @@
   "version": "0.1",
   "homepage_url": "https://github.com/kareniel/sc-grep",
 
-  "permissions": [ "storage", "activeTab" ],
+  "permissions": [ 
+    "management",
+    "storage", 
+    "activeTab",
+    "contextMenus",
+    "webRequest",
+    "<all_urls>"
+  ],
 
   "options_ui": {
     "page": "options.html"
@@ -16,10 +23,14 @@
     "default_popup": "options.html"
   },
 
+  "background": {
+    "scripts": ["background.js"]
+  },
+
   "content_scripts": [
     {
       "matches": ["https://soundcloud.com/*"],
-      "js": ["index.js"]
+      "js": ["soundcloud.js"]
     }
   ]
 }
