@@ -1,5 +1,25 @@
 const STORAGE_KEY = 'sc-grep'
-window.name = 'soundcloud'
+const excluded = [
+  'beatport.com',
+  'apple.com',
+  'spotify.com'
+]
+
+const excludedLinkText = [
+  'stream',
+  'buy',
+  'tweet',
+  'twitter',
+  'read more',
+  'spotify',
+  'discover',
+  'sign up'
+]
+
+const opts = {
+  onlyDownloadable: true,
+  excludedTags: ['dubstep', 'trap', 'sample pack', 'edm', 'dance & edm', 'trance', 'trap / dubstep']
+}
 
 var state = loadState
 var emitter = new Emitter()
@@ -55,28 +75,6 @@ function Emitter () {
       if (request.message === message) return callback(request.payload)
     })
   }
-}
-
-const excluded = [
-  'beatport.com',
-  'apple.com',
-  'spotify.com'
-]
-
-const excludedLinkText = [
-  'stream',
-  'buy',
-  'tweet',
-  'twitter',
-  'read more',
-  'spotify',
-  'discover',
-  'sign up'
-]
-
-const opts = {
-  onlyDownloadable: true,
-  excludedTags: ['dubstep', 'trap', 'sample pack', 'edm', 'dance & edm', 'trance', 'trap / dubstep']
 }
 
 function clearElements () {
