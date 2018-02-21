@@ -2,7 +2,9 @@ const STORAGE_KEY = 'sc-grep'
 const excluded = [
   'beatport.com',
   'apple.com',
-  'spotify.com'
+  'spotify.com',
+  'instagram.com',
+  'twitter'x
 ]
 
 const excludedLinkText = [
