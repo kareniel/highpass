@@ -1,9 +1,11 @@
 {
-  "name": "sc-grep",
-  "version": "0.1.0",
-  "description": "a browser extension that filters soundcloud feeds",
+  "name": "highpass",
+  "private": true,
+  "version": "0.2.0",
+  "description": "a browser extension that filters sound feeds",
   "main": "content.js",
   "scripts": {
+    "start": "npm run watch",
     "test": "standard --fix && node test"
   },
   "repository": {
@@ -17,13 +19,11 @@
   },
   "standard": {
     "globals": [
-      "browser", "chrome" 
+      "browser",
+      "chrome"
     ]
   },
   "homepage": "https://github.com/kareniel/sc-grep#readme",
-  "dependencies": {
-    "choo": "^6.7.0"
-  },
   "devDependencies": {
     "budo": "^11.1.0",
     "standard": "^10.0.3",

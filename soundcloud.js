@@ -1,13 +1,24 @@
-const STORAGE_KEY = 'sc-grep'
-const excluded = [
+class Enum {
+  constructor (keys) {
+    this.map = new Map()
+
+    keys.forEach((key, i) => this.map.set(key, i ^ 2))
+  }
+
+  list () {
+    return Array.from(this.map.keys())
+  }
+}
+
+const excluded = new Enum([
   'beatport.com',
   'apple.com',
   'spotify.com',
   'instagram.com',
-  'twitter'x
-]
+  'twitter'
+])
 
-const excludedLinkText = [
+const excludedLinkText = new Enum([
   'stream',
   'buy',
   'tweet',
@@ -16,84 +27,120 @@ const excludedLinkText = [
   'spotify',
   'discover',
   'sign up'
-]
+])
+
+const excludedTags = new Enum([
+  'dubstep',
+  'trap',
+  'sample pack',
+  'edm',
+  'dance & edm',
+  'trance',
+  'trap / dubstep'
+])
+
+const selectors = {
+  ITEM: '.soundList__item',
+  DOWNLOAD_LINK: '.soundActions__purchaseLink',
+  TAG_TEXT: '.soundTitle__tagContent'
+}
 
 const opts = {
-  onlyDownloadable: true,
-  excludedTags: ['dubstep', 'trap', 'sample pack', 'edm', 'dance & edm', 'trance', 'trap / dubstep']
+  onlyDownloadable: 1,
+  excludedTags: excludedTags.list()
 }
 
-var state = loadState
-var emitter = new Emitter()
-var interval
+const STORAGE_KEY = 'sc-grep'
+const DELAY_IN_MS = 500
 
-store(state, emitter)
+class App {
+  constructor () {
+    this.state = {
+      toggled: false,
+      timerId: 0
+    }
 
-function store (state, emitter) {
-  state.toggled = state.toggled
+    this.toggle = this.toggle.bind(this)
+    this.clearElements = this.clearElements.bind(this)
 
-  emitter.on('toggle-extension', toggleExtension)
+    var emitter = {
+      on: function (message, callback) {
+        chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+          if (request.message === message) return callback(request.payload)
+        })
+      }
+    }
 
-  if (state.toggled) start()
+    emitter.on('toggle-extension', this.toggle)
 
-  function toggleExtension (payload) {
-    state.toggled = payload
-    saveState()
-
-    return payload === true
-      ? start()
-      : pause()
+    this.load()
   }
-}
 
-function start () {
-  console.log('start')
-  interval = setInterval(clearElements, 250)
-}
-
-function pause () {
-  console.log('pause')
-  clearInterval(interval)
-}
-
-function loadState () {
-  var state = window.localStorage.getItem(STORAGE_KEY)
-
-  try {
-    state = JSON.parse(state)
-    return state
-  } catch (err) {
-    return {}
+  toggle () {
+    return this.state.toggled
+      ? this.pause()
+      : this.start()
   }
-}
 
-function saveState () {
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
-}
+  start () {
+    this.state.timerId = setInterval(() => {
+      this.clearElements(document)
+    }, DELAY_IN_MS)
+    this.state.toggled = true
 
-function Emitter () {
-  this.on = function registerEvent (message, callback) {
-    chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-      if (request.message === message) return callback(request.payload)
+    this.save()
+  }
+
+  pause () {
+    clearInterval(this.state.timerId)
+    this.state.toggled = false
+
+    this.save()
+  }
+
+  save () {
+    var dict = {}
+    var serializedState = JSON.stringify(this.state)
+
+    dict[STORAGE_KEY] = serializedState
+
+    chrome.storage.sync.set(dict, noop)
+  }
+
+  load () {
+    chrome.storage.sync.get([ STORAGE_KEY ], items => {
+      var serializedState = items[STORAGE_KEY]
+
+      if (serializedState && typeof serializedState === 'string') {
+        Object.assign(this.state, JSON.parse(serializedState), {
+          timerId: 0
+        })
+      }
+
+      if (this.state.toggled) this.start()
+    })
+  }
+
+  clearElements (doc) {
+    var items = doc.querySelectorAll(selectors.ITEM)
+
+    items.forEach(function (item) {
+      var purchaseLink = item.querySelectorAll(selectors.DOWNLOAD_LINK)[0]
+
+      if (!purchaseLink) return remove(item)
+      if (purchaseLink && !possibleDownload(purchaseLink)) return remove(item)
+
+      var tag = item.querySelectorAll(selectors.TAG_TEXT)[0]
+      if (tag && excludedTag(tag.innerText)) return remove(item)
     })
   }
 }
 
-function clearElements () {
-  var items = document.querySelectorAll('.soundList__item')
+var app = new App()
 
-  items.forEach(function (item) {
-    var purchaseLink = item.querySelectorAll('.soundActions__purchaseLink')[0]
+// Santa's lil' helpers
 
-    if (!purchaseLink) return filterOut(item)
-    if (purchaseLink && !possibleDownload(purchaseLink)) return filterOut(item)
-
-    var tag = item.querySelectorAll('.soundTitle__tagContent')[0]
-    if (tag && excludedTag(tag.innerText)) return filterOut(item)
-  })
-}
-
-function filterOut (el) {
+function remove (el) {
   el.parentNode.removeChild(el)
 }
 
@@ -104,15 +151,17 @@ function possibleDownload (el) {
 function hasExcludedLinkText (el) {
   var text = el.innerText.toLowerCase()
 
-  return excludedLinkText.some(excluded => text.indexOf(excluded) !== -1)
+  return excludedLinkText.list().some(excluded => text.indexOf(excluded) !== -1)
 }
 
 function inExcludedList (el) {
   var hostname = new window.URL(el.title).hostname
 
-  return excluded.some(site => hostname.indexOf(site) !== -1)
+  return excluded.list().some(site => hostname.indexOf(site) !== -1)
 }
 
 function excludedTag (text) {
   return opts.excludedTags.includes(text.toLowerCase())
 }
+
+function noop () {}
