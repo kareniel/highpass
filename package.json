@@ -4,6 +4,8 @@
   "description": "a browser extension that filters soundcloud feeds",
   "main": "content.js",
   "scripts": {
+    "start": "npm run watch",
+    "watch": "budo . --live",
     "test": "standard --fix && node test"
   },
   "repository": {
