@@ -1,16 +1,12 @@
 class Enum {
   constructor (keys) {
-    var map = new Map()
+    this.map = new Map()
 
-    keys.forEach((key, i) => map.set(key, i ^ 2))
-
-    map.list = this.list.bind(map)
-
-    return map
+    keys.forEach((key, i) => this.map.set(key, i ^ 2))
   }
 
   list () {
-    return Array.from(this.keys())
+    return Array.from(this.map.keys())
   }
 }
 
@@ -55,7 +51,7 @@ const opts = {
 }
 
 const STORAGE_KEY = 'sc-grep'
-const CLEAR_INTERVAL = 250 // milliseconds
+const DELAY_IN_MS = 500
 
 class App {
   constructor () {
@@ -81,23 +77,21 @@ class App {
   }
 
   toggle () {
-    console.log('toggle')
-
     return this.state.toggled
       ? this.pause()
       : this.start()
   }
 
   start () {
-    console.log('start')
-    this.state.timerId = setInterval(this.clearElements(document), CLEAR_INTERVAL)
+    this.state.timerId = setInterval(() => {
+      this.clearElements(document)
+    }, DELAY_IN_MS)
     this.state.toggled = true
 
     this.save()
   }
 
   pause () {
-    console.log('pause')
     clearInterval(this.state.timerId)
     this.state.toggled = false
 
@@ -115,11 +109,15 @@ class App {
 
   load () {
     chrome.storage.sync.get([ STORAGE_KEY ], items => {
-      var serializedState = items[0]
+      var serializedState = items[STORAGE_KEY]
 
       if (serializedState && typeof serializedState === 'string') {
-        Object.assign(this.state, JSON.parse(serializedState))
+        Object.assign(this.state, JSON.parse(serializedState), {
+          timerId: 0
+        })
       }
+
+      if (this.state.toggled) this.start()
     })
   }
 
@@ -129,22 +127,20 @@ class App {
     items.forEach(function (item) {
       var purchaseLink = item.querySelectorAll(selectors.DOWNLOAD_LINK)[0]
 
-      if (!purchaseLink) return filterOut(item)
-      if (purchaseLink && !possibleDownload(purchaseLink)) return filterOut(item)
+      if (!purchaseLink) return remove(item)
+      if (purchaseLink && !possibleDownload(purchaseLink)) return remove(item)
 
       var tag = item.querySelectorAll(selectors.TAG_TEXT)[0]
-      if (tag && excludedTag(tag.innerText)) return filterOut(item)
+      if (tag && excludedTag(tag.innerText)) return remove(item)
     })
   }
 }
 
 var app = new App()
 
-if (app.state.toggled) app.start()
-
 // Santa's lil' helpers
 
-function filterOut (el) {
+function remove (el) {
   el.parentNode.removeChild(el)
 }
 

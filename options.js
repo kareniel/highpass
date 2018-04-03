@@ -3,18 +3,23 @@ window.name = 'popover'
 const STORAGE_KEY = 'sc-grep'
 
 document.addEventListener('DOMContentLoaded', function () {
+  var state = { toggled: false }
   chrome.storage.sync.get([ STORAGE_KEY ], function (items) {
-    var str = items[STORAGE_KEY]
-    var state = JSON.parse(str)
+    var serializedState = items[STORAGE_KEY]
 
-    if (state && typeof state === 'string') state = JSON.parse(state)
+    try {
+      state = JSON.parse(serializedState)
+    } catch (err) {
+
+    }
 
     var el = document.createElement('input')
 
     el.type = 'checkbox'
-    el.checked = state ? state.checkbox.toggled : false
+    el.checked = state.toggled
 
     el.addEventListener('change', function (e) {
+      console.log('toggle')
       emit('toggle-extension')
     })
 
