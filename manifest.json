@@ -5,10 +5,6 @@
   "version": "0.1",
   "homepage_url": "https://github.com/kareniel/sc-grep",
 
-  "icons": {
-    "128": "icon128.png"
-  },
-
   "permissions": [ 
     "management",
     "storage", 
